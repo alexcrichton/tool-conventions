@@ -198,36 +198,80 @@ allows for a single result. The second calling is referred to as
 "wasm-multivalue" and assumes [multivalue] is enabled and additionally applies
 some small tweaks from the previous calling convention learned over time.
 
-The following table shows how all non-`struct` or `union` types are passed in
-both calling conventions:
+The following table shows how all types are passed in both calling conventions:
 
-Type                         | Parameter     | Result   |
------------------------------|---------------|----------|
-scalar[^1]                   | direct        | direct   |
-empty struct or union        | ignored       | ignored  |
-singleton struct or union[^2]| direct        | direct   |
-flat struct[^3]              | direct        | direct   |
-other struct or union[^4]    | indirect      | indirect |
-array                        | indirect      | N/A      |
+<table>
+  <tr>
+    <th>Type</type>
+    <th colspan="2">Parameter</th>
+    <th colspan="2">Result</th>
+  </tr>
+  <tr>
+    <th></th>
+    <th>"C"</th>
+    <th>"wasm-multivalue"</th>
+    <th>"C"</th>
+    <th>"wasm-multivalue"</th>
+  </tr>
+  <tr>
+    <td>8 to 64-bit scalars</td>
+    <td>direct</td>
+    <td>direct</td>
+    <td>direct</td>
+    <td>direct</td>
+  </tr>
+  <tr>
+    <td>128-bit scalars</td>
+    <td>direct</td>
+    <td>direct</td>
+    <td>indirect</td>
+    <td>direct</td>
+  </tr>
+  <tr>
+    <td>struct/union - 0 fields</td>
+    <td>ignored</td>
+    <td>ignored</td>
+    <td>ignored</td>
+    <td>ignored</td>
+  </tr>
+  <tr>
+    <td>struct/union - 1 scalar field</td>
+    <td>direct</td>
+    <td>direct</td>
+    <td>direct</td>
+    <td>direct</td>
+  </tr>
+  <tr>
+    <td>struct - 2 scalar fields</td>
+    <td>indirect</td>
+    <td>direct</td>
+    <td>indirect</td>
+    <td>direct</td>
+  </tr>
+  <tr>
+    <td>struct - 3+ scalar fields</td>
+    <td>indirect</td>
+    <td>indirect</td>
+    <td>indirect</td>
+    <td>direct</td>
+  </tr>
+  <tr>
+    <td>struct/union - other</td>
+    <td>indirect</td>
+    <td>indirect</td>
+    <td>indirect</td>
+    <td>indirect</td>
+  </tr>
+</table>
 
-[^1]: Signed 8 and 16-bit scalars are sign-extended, and unsigned 8 and 16-bit
-    scalars are zero-extended before passing or returning. `long double` and
-    `__int128` are passed directly as two `i64` values in paraemters, and in
-    results for the "C" convention they're returned indirectly and for the
-    "wasm-multivalue" calling convention they're returned directly.
+For scalars, signed 8 and 16-bit scalars are sign-extended, and unsigned 8 and
+16-bit scalars are zero-extended before passing or returning. Passing 128-bit
+scalars directly, such as `long double` and `__int128`, is done with two `i64`
+values.
 
-[^2]: Any struct or union that recursively (including through nested structs,
-    unions, and arrays) contains just a single scalar value and is not specified
-    to have greater than natural alignment.
-
-[^3]: This is only applicable to the "wasm-multivalue" ABI. Flat structs in
-    parameters are limited two structs with two fields which are themselves
-    (optionally recursively) scalars. A flat struct result requires that every
-    field of a struct is (optionally recursively) a scalar.
-
-[^4]: All other structs/unions not previously covered for both ABIs are
-    indirect. This is because "C" came before [multivalue], and for [multivalue]
-    not everything is represented as direct arguments.
+A "scalar field" of a struct or union is a field which recursively, through
+nested structs, unions, and arrays, contains just a single scalar vallue and is
+not specified to have greater than natural alignment.
 
 Some example C function signatures, and their corresponding WebAssembly function
 signatures, are:
