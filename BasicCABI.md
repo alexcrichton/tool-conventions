@@ -249,7 +249,7 @@ The following table shows how all types are passed in both calling conventions:
     <td>direct</td>
   </tr>
   <tr>
-    <td>struct - 3+ scalar fields</td>
+    <td>struct - 3-100 scalar fields</td>
     <td>indirect</td>
     <td>indirect</td>
     <td>indirect</td>
@@ -270,7 +270,7 @@ scalars directly, such as `long double` and `__int128`, is done with two `i64`
 values.
 
 A "scalar field" of a struct or union is a field which recursively, through
-nested structs, unions, and arrays, contains just a single scalar vallue and is
+nested structs, unions, and arrays, contains just a single scalar value and is
 not specified to have greater than natural alignment.
 
 Some example C function signatures, and their corresponding WebAssembly function
